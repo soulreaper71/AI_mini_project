@@ -1,0 +1,94 @@
+from matplotlib import pyplot as plt
+import networkx as nx
+from math import cos, sin, pi
+
+# Manually adjust positions for a circular arrangement with core components in the inner ring and dependencies in the outer ring.
+core_components = [
+    "Data Collection", "Data Preprocessing", "Feature Engineering", 
+    "Misinformation Detection Models", "Detection Output", 
+    "User Feedback Loop", "Visualization & Reporting", "Deployment"
+]
+
+# Outer dependencies/components
+outer_dependencies = {
+    "Data Collection": ["Social Media Platforms", "APIs/Scraping/Public Datasets"],
+    "Data Preprocessing": ["Text Preprocessing", "Meta-data Extraction", "Filtering"],
+    "Feature Engineering": ["Linguistic Features", "User Behavior", "Network Features"],
+    "Misinformation Detection Models": ["Machine Learning", "Rule-based Systems", "Hybrid Model"],
+    "Detection Output": ["Classification", "Confidence Score", "Time-sensitive Analysis"],
+    "User Feedback Loop": ["Crowdsourcing", "Model Retraining"],
+    "Visualization & Reporting": ["Dashboards", "Alert System"],
+    "Deployment": ["API/Service Layer", "User Interface"]
+}
+
+# Define the positions for the core components (inner ring)
+inner_radius = 1  # Reduced radius for clumping core components closer
+pos_core = {node: (inner_radius * cos(2 * pi / len(core_components) * i), inner_radius * sin(2 * pi / len(core_components) * i)) for i, node in enumerate(core_components)}
+
+# Define the positions for the outer components (outer ring)
+pos_outer = {}
+total_outer_dependencies = sum(len(v) for v in outer_dependencies.values())
+if total_outer_dependencies == 0:
+    angle_step = 2 * pi  # Default angle step if there are no outer dependencies
+else:
+    angle_step = 2 * pi / total_outer_dependencies
+
+current_angle = 0
+outer_radius = 3  # Outer ring radius remains the same
+for component, sub_components in outer_dependencies.items():
+    for sub_component in sub_components:
+        pos_outer[sub_component] = (outer_radius * cos(current_angle), outer_radius * sin(current_angle))
+        current_angle += angle_step
+
+# Create the graph and add nodes and edges
+G = nx.DiGraph()
+
+# Add core components as nodes
+for component in core_components:
+    G.add_node(component)
+
+# Add outer dependencies as nodes and edges
+for component, sub_components in outer_dependencies.items():
+    for sub_component in sub_components:
+        G.add_node(sub_component)
+        G.add_edge(component, sub_component)
+
+# Merge both core and outer component positions
+pos = {**pos_core, **pos_outer}
+
+# Define colors for core components and their dependencies
+color_map = {
+    "Data Collection": "lightcoral",
+    "Data Preprocessing": "lightgreen",
+    "Feature Engineering": "lightblue",
+    "Misinformation Detection Models": "lightyellow",
+    "Detection Output": "lightpink",
+    "User Feedback Loop": "lightgrey",
+    "Visualization & Reporting": "lightcyan",
+    "Deployment": "magenta"
+}
+
+# Assign colors to nodes
+node_colors = []
+for node in G.nodes():
+    for core_component, color in color_map.items():
+        if node == core_component or node in outer_dependencies.get(core_component, []):
+            node_colors.append(color)
+            break
+
+# Redraw the flowchart with new positions and colors
+plt.figure(figsize=(12, 12))
+nx.draw(G, pos=pos, with_labels=False, node_size=3500, node_color=node_colors, font_size=10, font_weight="bold", arrows=True, arrowsize=20)
+
+# Add labels with background to improve readability
+labels = {node: node for node in G.nodes()}
+nx.draw_networkx_labels(G, pos, labels, font_size=10, font_weight="bold", bbox=dict(facecolor='white', edgecolor='none', alpha=0.7))
+
+# Add edge labels to improve readability
+edge_labels = {(component, sub_component): "" for component in core_components for sub_component in outer_dependencies.get(component, [])}
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='red')
+
+plt.title("Misinformation Detection System Flowchart", fontsize=16)
+
+# Show the plot
+plt.show()

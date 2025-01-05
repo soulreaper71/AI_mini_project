@@ -1,0 +1,26 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# Read the data
+data = pd.read_csv('true1.csv', index_col=0)
+data2 = pd.read_csv('false1.csv', index_col=0)
+
+# Add index column if not already present
+if 'index' not in data.columns:
+    data['index'] = range(len(data))
+    data.to_csv('true1.csv', index=False)
+
+if 'index' not in data2.columns:
+    data2['index'] = range(len(data2))
+    data2.to_csv('false1.csv', index=False)
+
+# Plot the total number of entries
+total_entries = [len(data), len(data2)]
+labels = ['True News articles', 'False News articles']
+
+plt.bar(labels, total_entries, color=['blue', 'red'])
+plt.xlabel('Type of News Article')
+plt.ylabel('Number of Articles')
+plt.title('Fake vs True News Articles in study')
+plt.bar_label(plt.bar(labels, total_entries, color=['green', 'red']))
+plt.show()
